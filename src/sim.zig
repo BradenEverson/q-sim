@@ -67,6 +67,10 @@ pub const Simulator = struct {
             self.curr = self.ready.swapRemove(0);
             const delta = self.getCurr().getDelta();
             self.time_left = delta;
+
+            // const curr = self.getCurr();
+            // curr.running_time = 0;
+            // curr.waiting_io_time = 0;
         }
     }
 

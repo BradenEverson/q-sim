@@ -50,7 +50,8 @@ pub const Task = struct {
         const tot_f: f32 = @floatFromInt(tot);
         const cpu_f: f32 = @floatFromInt(self.running_time);
 
-        const percent = (cpu_f / tot_f) * 100;
+        var percent = (cpu_f / tot_f) * 100;
+        if (tot_f == 0.0) percent = 100.0;
         std.debug.print("\t{:.2}%\t", .{percent});
     }
 
