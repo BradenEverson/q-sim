@@ -40,10 +40,10 @@ pub const Instruction = union(enum) {
 pub const Task = struct {
     pc: usize = 0,
     time: usize,
-    instructions: []Instruction,
+    instructions: []const Instruction,
 
-    pub fn init(instructions: []Instruction) Task {
-        const self = Task{
+    pub fn init(instructions: []const Instruction) Task {
+        var self = Task{
             .time = 0,
             .instructions = instructions,
         };
@@ -54,25 +54,67 @@ pub const Task = struct {
             },
             else => {},
         }
+
+        return self;
     }
 
     pub fn advance(self: *Task) ?Instruction {
-        _ = self;
+        switch (self.instructions[self.pc]) {
+            .work => |_| {
+                self.time -= 1;
+                if (self.time == 0) {
+                    self.pc += 1;
+                    if (self.pc >= self.instructions.len) self.pc = 0;
+                    switch (self.instructions[self.pc]) {
+                        .work => |w| {
+                            self.time = w.resolve();
+                        },
+                        else => {},
+                    }
 
-        return null;
+                    return self.instructions[self.pc];
+                } else {
+                    return null;
+                }
+            },
+            .io => |_| {
+                self.pc += 1;
+                if (self.pc >= self.instructions.len) self.pc = 0;
+                switch (self.instructions[self.pc]) {
+                    .work => |w| {
+                        self.time = w.resolve();
+                    },
+                    else => {},
+                }
+
+                return self.instructions[self.pc];
+            },
+        }
     }
 };
 
 pub const Simulator = struct {
-    tasks: std.ArrayList(Task),
-    waiting: std.ArrayList(struct { id: usize, time: usize }),
-    ready: std.ArrayList(usize),
+    tasks: std.ArrayList(Task) = .{},
+    waiting: std.ArrayList(struct { id: usize, time: usize }) = .{},
+    ready: std.ArrayList(usize) = .{},
 
     curr: usize = 0,
     time_left: usize = DELTA,
 
-    pub fn register(alloc: std.mem.Allocator, self: *Simulator, task: Task) !void {
+    pub fn deinit(self: *Simulator, alloc: std.mem.Allocator) void {
+        self.tasks.deinit(alloc);
+        self.waiting.deinit(alloc);
+        self.ready.deinit(alloc);
+    }
+
+    pub fn register(self: *Simulator, alloc: std.mem.Allocator, task: Task) !void {
+        const idx = self.tasks.items.len;
         try self.tasks.append(alloc, task);
+        if (idx != 0) {
+            try self.ready.append(alloc, idx);
+        }
+
+        std.debug.print("Registered: {}\n", .{idx});
     }
 
     fn update_waiting(self: *Simulator, alloc: std.mem.Allocator) !void {
@@ -90,21 +132,32 @@ pub const Simulator = struct {
     }
 
     fn getCurr(self: *Simulator) *Task {
-        return self.tasks.items[self.curr];
+        return &self.tasks.items[self.curr];
     }
 
-    pub fn tick(self: *Simulator) void {
+    fn contextSwitch(self: *Simulator) void {
+        std.debug.print("Context Switch\n", .{});
+        std.debug.print("\tFrom: {}\n", .{self.curr});
+        self.curr = self.ready.swapRemove(0);
+        self.time_left = DELTA;
+        std.debug.print("\tTo: {}\n", .{self.curr});
+    }
+
+    pub fn tick(self: *Simulator, alloc: std.mem.Allocator) !void {
         // Update all IO waiting queues
-        self.update_waiting();
+        try self.update_waiting(alloc);
 
         const next = self.getCurr().advance();
         self.time_left -= 1;
 
         if (self.time_left == 0) {
-            // Do a preemption yield
+            try self.ready.append(alloc, self.curr);
+            self.contextSwitch();
         } else if (next) |instr| {
             if (instr == .io) {
                 // Do an IO yield
+                try self.waiting.append(alloc, .{ .id = self.curr, .time = instr.io.resolve() });
+                self.contextSwitch();
             }
         }
     }
@@ -114,8 +167,6 @@ test "range resolve" {
     const w = Work{ .range = .{ .floor = 2, .ceiling = 5 } };
 
     const val = w.resolve();
-
-    std.debug.print("{}\n", .{val});
 
     try std.testing.expect(val >= 2);
     try std.testing.expect(val <= 5);
