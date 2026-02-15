@@ -62,9 +62,9 @@ pub const Simulator = struct {
     }
 
     fn contextSwitch(self: *Simulator) void {
-        std.debug.print("{} - Context Switch\n", .{self.time});
-        std.debug.print("\tFrom: {}\t", .{self.curr});
-        self.getCurr().printAvgCpuTime();
+        // std.debug.print("{} - Context Switch\n", .{self.time});
+        // std.debug.print("\tFrom: {}\t", .{self.curr});
+        // self.getCurr().printAvgCpuTime();
 
         if (self.ready.items.len == 0) {
             std.debug.print("All jobs waiting on IO\n", .{});
@@ -72,8 +72,21 @@ pub const Simulator = struct {
         } else {
             self.curr = self.ready.swapRemove(0);
             self.time_left = DELTA;
-            std.debug.print("\tTo: {}\t", .{self.curr});
-            self.getCurr().printAvgCpuTime();
+            // std.debug.print("\tTo: {}\t", .{self.curr});
+            // self.getCurr().printAvgCpuTime();
+        }
+    }
+
+    pub fn summarize(self: *const Simulator) void {
+        std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
+        std.debug.print("|\tTask\t|\tStarvation\t|\tCPU Runtime\t|\n", .{});
+        std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
+        for (self.tasks.items, 0..) |task, idx| {
+            std.debug.print("|\t{}\t", .{idx});
+            std.debug.print("|\t{}\t\t|", .{task.starvation_time});
+            task.printAvgCpuTime();
+            std.debug.print("\t|\n", .{});
+            std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
         }
     }
 
@@ -94,13 +107,13 @@ pub const Simulator = struct {
 
         if (self.time_left == 0) {
             try self.ready.append(alloc, self.curr);
-            std.debug.print("Preemptive ", .{});
+            // std.debug.print("Preemptive ", .{});
             self.contextSwitch();
         } else if (next) |instr| {
             if (instr == .io) {
                 // Do an IO yield
                 try self.waiting.append(alloc, .{ .id = self.curr, .time = instr.io.resolve() });
-                std.debug.print("IO ", .{});
+                // std.debug.print("IO ", .{});
                 self.contextSwitch();
             }
         }

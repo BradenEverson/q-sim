@@ -51,7 +51,7 @@ pub const Task = struct {
         const cpu_f: f32 = @floatFromInt(self.running_time);
 
         const percent = (cpu_f / tot_f) * 100;
-        std.debug.print("\t{:.2}%\n", .{percent});
+        std.debug.print("\t{:.2}%\t", .{percent});
     }
 
     pub fn init(instructions: []const Instruction) Task {
