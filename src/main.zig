@@ -17,7 +17,7 @@ pub fn main() !void {
 
     const instrs_b = &[_]sim.Instruction{
         .{ .work = .{ .fixed = 5 } },
-        .{ .work = .{ .fixed = 10 } },
+        .{ .io = .{ .fixed = 50 } },
     };
     const task_b = sim.Task.init(instrs_b);
 

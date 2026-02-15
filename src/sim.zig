@@ -152,11 +152,13 @@ pub const Simulator = struct {
 
         if (self.time_left == 0) {
             try self.ready.append(alloc, self.curr);
+            std.debug.print("Preemptive ", .{});
             self.contextSwitch();
         } else if (next) |instr| {
             if (instr == .io) {
                 // Do an IO yield
                 try self.waiting.append(alloc, .{ .id = self.curr, .time = instr.io.resolve() });
+                std.debug.print("IO ", .{});
                 self.contextSwitch();
             }
         }
