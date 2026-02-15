@@ -11,8 +11,9 @@ pub fn main() !void {
     defer simulator.deinit(alloc);
 
     const instrs_a = &[_]task.Instruction{
-        .{ .work = .{ .fixed = 5 } },
-        .{ .work = .{ .fixed = 10 } },
+        .{ .work = .{ .fixed = 500 } },
+        .{ .work = .{ .range = .{ .floor = 5, .ceiling = 15 } } },
+        .{ .io = .{ .fixed = 10 } },
     };
     const task_a = task.Task.init(instrs_a);
 

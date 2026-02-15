@@ -11,6 +11,8 @@ pub const Simulator = struct {
     waiting: std.ArrayList(struct { id: usize, time: usize }) = .{},
     ready: std.ArrayList(usize) = .{},
 
+    time: usize = 0,
+
     curr: usize = 0,
     time_left: usize = DELTA,
 
@@ -60,15 +62,25 @@ pub const Simulator = struct {
     }
 
     fn contextSwitch(self: *Simulator) void {
-        std.debug.print("Context Switch\n", .{});
-        std.debug.print("\tFrom: {}\n", .{self.curr});
-        self.curr = self.ready.swapRemove(0);
-        self.time_left = DELTA;
-        std.debug.print("\tTo: {}\n", .{self.curr});
+        std.debug.print("{} - Context Switch\n", .{self.time});
+        std.debug.print("\tFrom: {}\t", .{self.curr});
+        self.getCurr().printAvgCpuTime();
+
+        if (self.ready.items.len == 0) {
+            std.debug.print("All jobs waiting on IO\n", .{});
+            @panic("TODO: ALL JOBS WAITING ON IO\n");
+        } else {
+            self.curr = self.ready.swapRemove(0);
+            self.time_left = DELTA;
+            std.debug.print("\tTo: {}\t", .{self.curr});
+            self.getCurr().printAvgCpuTime();
+        }
     }
 
     pub fn tick(self: *Simulator, alloc: std.mem.Allocator) !void {
         // Update metrics
+
+        self.time += 1;
 
         self.getCurr().running_time += 1;
         self.updateStarvation();

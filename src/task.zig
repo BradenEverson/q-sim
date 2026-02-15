@@ -44,6 +44,16 @@ pub const Task = struct {
     waiting_io_time: usize = 0,
     starvation_time: usize = 0,
 
+    pub fn printAvgCpuTime(self: *const Task) void {
+        const tot = self.running_time + self.waiting_io_time;
+
+        const tot_f: f32 = @floatFromInt(tot);
+        const cpu_f: f32 = @floatFromInt(self.running_time);
+
+        const percent = (cpu_f / tot_f) * 100;
+        std.debug.print("\t{:.2}%\n", .{percent});
+    }
+
     pub fn init(instructions: []const Instruction) Task {
         var self = Task{
             .time = 0,
