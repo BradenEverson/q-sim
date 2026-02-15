@@ -42,6 +42,10 @@ pub const Task = struct {
     time: usize,
     instructions: []const Instruction,
 
+    running_time: usize = 0,
+    waiting_io_time: usize = 0,
+    starvation_time: usize = 0,
+
     pub fn init(instructions: []const Instruction) Task {
         var self = Task{
             .time = 0,
@@ -117,7 +121,14 @@ pub const Simulator = struct {
         std.debug.print("Registered: {}\n", .{idx});
     }
 
-    fn update_waiting(self: *Simulator, alloc: std.mem.Allocator) !void {
+    fn updateStarvation(self: *Simulator) void {
+        for (self.ready.items) |r| self.getTask(r).starvation_time += 1;
+    }
+    fn updateWaitingTime(self: *Simulator) void {
+        for (self.waiting.items) |w| self.getTask(w.id).waiting_io_time += 1;
+    }
+
+    fn updateWaiting(self: *Simulator, alloc: std.mem.Allocator) !void {
         var i: usize = self.waiting.items.len;
         while (i > 0) {
             i -= 1;
@@ -129,6 +140,10 @@ pub const Simulator = struct {
                 try self.ready.append(alloc, finished.id);
             }
         }
+    }
+
+    fn getTask(self: *Simulator, idx: usize) *Task {
+        return &self.tasks.items[idx];
     }
 
     fn getCurr(self: *Simulator) *Task {
@@ -144,8 +159,14 @@ pub const Simulator = struct {
     }
 
     pub fn tick(self: *Simulator, alloc: std.mem.Allocator) !void {
+        // Update metrics
+
+        self.getCurr().running_time += 1;
+        self.updateStarvation();
+        self.updateWaitingTime();
+
         // Update all IO waiting queues
-        try self.update_waiting(alloc);
+        try self.updateWaiting(alloc);
 
         const next = self.getCurr().advance();
         self.time_left -= 1;
