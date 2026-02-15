@@ -12,12 +12,11 @@ pub fn main() !void {
 
     const instrs_a = &[_]task.Instruction{
         .{ .work = .{ .fixed = 500 } },
-        .{ .work = .{ .range = .{ .floor = 5, .ceiling = 15 } } },
     };
     const task_a = task.Task.init(instrs_a);
 
     const instrs_b = &[_]task.Instruction{
-        .{ .work = .{ .range = .{ .floor = 5, .ceiling = 7 } } },
+        .{ .work = .{ .range = .{ .floor = 25, .ceiling = 45 } } },
         .{ .io = .{ .range = .{ .floor = 35, .ceiling = 50 } } },
     };
     const task_b = task.Task.init(instrs_b);

@@ -4,8 +4,6 @@ const std = @import("std");
 const t = @import("task.zig");
 const Task = t.Task;
 
-const DELTA: usize = 10;
-
 pub const Simulator = struct {
     tasks: std.ArrayList(Task) = .{},
     waiting: std.ArrayList(struct { id: usize, time: usize }) = .{},
@@ -14,7 +12,7 @@ pub const Simulator = struct {
     time: usize = 0,
 
     curr: usize = 0,
-    time_left: usize = DELTA,
+    time_left: usize = 10,
 
     pub fn deinit(self: *Simulator, alloc: std.mem.Allocator) void {
         self.tasks.deinit(alloc);
@@ -62,18 +60,13 @@ pub const Simulator = struct {
     }
 
     fn contextSwitch(self: *Simulator) void {
-        // std.debug.print("{} - Context Switch\n", .{self.time});
-        // std.debug.print("\tFrom: {}\t", .{self.curr});
-        // self.getCurr().printAvgCpuTime();
-
         if (self.ready.items.len == 0) {
             std.debug.print("All jobs waiting on IO\n", .{});
             @panic("TODO: ALL JOBS WAITING ON IO\n");
         } else {
             self.curr = self.ready.swapRemove(0);
-            self.time_left = DELTA;
-            // std.debug.print("\tTo: {}\t", .{self.curr});
-            // self.getCurr().printAvgCpuTime();
+            const delta = self.getCurr().getDelta();
+            self.time_left = delta;
         }
     }
 
@@ -107,13 +100,12 @@ pub const Simulator = struct {
 
         if (self.time_left == 0) {
             try self.ready.append(alloc, self.curr);
-            // std.debug.print("Preemptive ", .{});
             self.contextSwitch();
         } else if (next) |instr| {
             if (instr == .io) {
                 // Do an IO yield
-                try self.waiting.append(alloc, .{ .id = self.curr, .time = instr.io.resolve() });
-                // std.debug.print("IO ", .{});
+                const time = instr.io.resolve();
+                try self.waiting.append(alloc, .{ .id = self.curr, .time = time });
                 self.contextSwitch();
             }
         }

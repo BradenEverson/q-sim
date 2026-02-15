@@ -70,6 +70,12 @@ pub const Task = struct {
         return self;
     }
 
+    pub fn getDelta(self: *const Task) usize {
+        _ = self;
+
+        return 10;
+    }
+
     pub fn advance(self: *Task) ?Instruction {
         switch (self.instructions[self.pc]) {
             .work => |_| {
