@@ -1,4 +1,4 @@
-//! Simulator
+//! Main simulation
 
 const std = @import("std");
 const t = @import("task.zig");
@@ -75,16 +75,32 @@ pub const Simulator = struct {
     }
 
     pub fn summarize(self: *const Simulator) void {
+        var starvation: usize = 0;
+        const time: f32 = @floatFromInt(self.time);
         std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
         std.debug.print("|\tTask\t|\tStarvation\t|\tCPU Runtime\t|\n", .{});
         std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
         for (self.tasks.items, 0..) |task, idx| {
+            const starvation_f: f32 = @floatFromInt(task.starvation_time);
+
+            starvation += task.starvation_time;
+
             std.debug.print("|\t{}\t", .{idx});
-            std.debug.print("|\t{}\t\t|", .{task.starvation_time});
+            std.debug.print("|\t{:.2}\t\t|", .{starvation_f / time});
             task.printAvgCpuTime();
             std.debug.print("\t|\n", .{});
             std.debug.print("+---------------+-----------------------+-----------------------+\n", .{});
         }
+
+        for (self.tasks.items) |task| {
+            std.debug.print("{any}\n", .{task.agent.deltas});
+        }
+
+        var avg_starve: f32 = @floatFromInt(starvation);
+        const len: f32 = @floatFromInt(self.tasks.items.len);
+        avg_starve /= len;
+
+        std.debug.print("\nAverage Task Starvation: {:.2}\n", .{avg_starve / time});
     }
 
     pub fn tick(self: *Simulator, alloc: std.mem.Allocator) !void {

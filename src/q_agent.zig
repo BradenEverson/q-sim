@@ -18,7 +18,7 @@ const BUCKETS: usize = 10;
 const BUCKETS_F: f32 = @floatFromInt(BUCKETS);
 
 pub fn getStateFromPct(cpu_pct: f32) usize {
-    const bucket: f32 = cpu_pct / BUCKETS_F;
+    const bucket: f32 = cpu_pct * BUCKETS_F;
 
     const bin: usize = @intFromFloat(bucket);
     if (bin >= BUCKETS) return BUCKETS - 1;
@@ -27,7 +27,7 @@ pub fn getStateFromPct(cpu_pct: f32) usize {
 
 /// Actions the agent can take
 const Action = enum { Shorten, Keep, Lengthen };
-const NumActions = @typeInfo(Action).@"enum".decls.len;
+const NumActions = @typeInfo(Action).@"enum".fields.len;
 
 q_table: [BUCKETS][NumActions]f32 = std.mem.zeroes([BUCKETS][NumActions]f32),
 deltas: [BUCKETS]usize = [_]usize{10} ** BUCKETS,
@@ -45,7 +45,7 @@ pub fn updateDelta(self: *QAgent) void {
     }
 }
 
-pub fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
+pub inline fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
     // TODO: Better reward
     const reward = cpu - wait;
 
@@ -67,7 +67,7 @@ pub fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
         var best_action: Action = .Keep;
         inline for (1..NumActions) |i| {
             if (self.q_table[next_state][i] > self.q_table[next_state][@intFromEnum(best_action)]) {
-                best_action = @enumFromInt(self.q_table[next_state][i]);
+                best_action = @enumFromInt(i);
             }
         }
 
