@@ -51,4 +51,5 @@ pub fn main() !void {
 test {
     _ = @import("sim.zig");
     _ = @import("task.zig");
+    _ = @import("q_table.zig");
 }
