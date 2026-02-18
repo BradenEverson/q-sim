@@ -45,6 +45,14 @@ pub fn updateDelta(self: *QAgent) void {
     }
 }
 
+const AVG_DELTA: f32 = 10.0;
+
+pub inline fn distPenalty(self: *QAgent) f32 {
+    const f_del: f32 = @floatFromInt(self.deltas[self.current_state]);
+
+    return 0.2 * std.math.pow(f32, f_del - AVG_DELTA, 2);
+}
+
 pub inline fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
     // TODO: Better reward
     const reward = cpu - wait;
