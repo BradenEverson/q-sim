@@ -14,6 +14,8 @@ pub const Simulator = struct {
     curr: usize = 0,
     time_left: usize = 10,
 
+    use_q_learning: bool = false,
+
     pub fn deinit(self: *Simulator, alloc: std.mem.Allocator) void {
         self.tasks.deinit(alloc);
         self.waiting.deinit(alloc);
@@ -65,7 +67,11 @@ pub const Simulator = struct {
             @panic("TODO: ALL JOBS WAITING ON IO\n");
         } else {
             self.curr = self.ready.swapRemove(0);
-            const delta = self.getCurr().getDelta();
+            const delta = if (self.use_q_learning)
+                self.getCurr().getDelta()
+            else
+                self.getCurr().getDeltaNoQ();
+
             self.time_left = delta;
 
             // const curr = self.getCurr();

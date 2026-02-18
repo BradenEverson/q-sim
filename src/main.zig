@@ -24,6 +24,8 @@ pub fn main() !void {
     try simulator.register(alloc, task_a);
     try simulator.register(alloc, task_b);
 
+    simulator.use_q_learning = true;
+
     var buf: [16]u8 = undefined;
     const stdin = std.fs.File.stdin().deprecatedReader();
 

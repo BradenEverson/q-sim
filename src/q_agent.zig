@@ -53,6 +53,16 @@ pub inline fn distPenalty(self: *QAgent) f32 {
     return std.math.pow(f32, f_del - AVG_DELTA, 2);
 }
 
+pub inline fn cpuUptimeReward(cpu: f32, wait: f32) f32 {
+    const pi: f32 = std.math.pi;
+    const pi_over_2: f32 = pi / 2;
+    const diff = (cpu - wait);
+
+    const epsilon = 1e-3;
+
+    return std.math.tan((pi_over_2 * diff) - epsilon);
+}
+
 /// How much we want to incorporate the total percentage of time
 /// spent NOT being starved
 const P_NO_WAIT: f32 = 75;
@@ -62,7 +72,7 @@ const P_LARGE_SMALL: f32 = 100;
 
 pub inline fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
     // TODO: Better reward
-    const reward = (P_NO_WAIT * std.math.tan(cpu - wait)) -
+    const reward = (P_NO_WAIT * cpuUptimeReward(cpu, wait)) -
         (P_LARGE_SMALL * self.distPenalty());
 
     const next_state = getStateFromPct(cpu);
