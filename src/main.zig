@@ -51,7 +51,7 @@ pub fn main() !void {
         }
     }
 
-    try csv.to_csv("tan_reward.csv", simulator.hist.items);
+    try csv.to_csv("simple.csv", simulator.hist.items);
 }
 
 test {
