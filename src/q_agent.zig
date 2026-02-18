@@ -50,12 +50,20 @@ const AVG_DELTA: f32 = 10.0;
 pub inline fn distPenalty(self: *QAgent) f32 {
     const f_del: f32 = @floatFromInt(self.deltas[self.current_state]);
 
-    return 0.2 * std.math.pow(f32, f_del - AVG_DELTA, 2);
+    return std.math.pow(f32, f_del - AVG_DELTA, 2);
 }
+
+/// How much we want to incorporate the total percentage of time
+/// spent NOT being starved
+const P_NO_WAIT: f32 = 75;
+
+/// How much we want to punish very high or very low deltas
+const P_LARGE_SMALL: f32 = 100;
 
 pub inline fn update(self: *QAgent, cpu: f32, wait: f32, rand: std.Random) usize {
     // TODO: Better reward
-    const reward = cpu - wait;
+    const reward = (P_NO_WAIT * std.math.tan(cpu - wait)) -
+        (P_LARGE_SMALL * self.distPenalty());
 
     const next_state = getStateFromPct(cpu);
     var max_q_next = self.q_table[next_state][0];
