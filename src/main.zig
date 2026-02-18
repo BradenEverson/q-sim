@@ -14,19 +14,28 @@ pub fn main() !void {
 
     const instrs_a = &[_]task.Instruction{
         .{ .work = .{ .fixed = 500 } },
+        .{ .io = .{ .range = .{ .floor = 2, .ceiling = 10 } } },
+        .{ .work = .{ .fixed = 1500 } },
     };
     const task_a = task.Task.init(instrs_a);
 
     const instrs_b = &[_]task.Instruction{
-        .{ .work = .{ .range = .{ .floor = 25, .ceiling = 45 } } },
-        .{ .io = .{ .range = .{ .floor = 35, .ceiling = 50 } } },
+        .{ .work = .{ .range = .{ .floor = 25, .ceiling = 450 } } },
+        .{ .io = .{ .range = .{ .floor = 3, .ceiling = 5 } } },
     };
     const task_b = task.Task.init(instrs_b);
 
+    const instrs_c = &[_]task.Instruction{
+        .{ .work = .{ .range = .{ .floor = 25, .ceiling = 450 } } },
+        .{ .io = .{ .range = .{ .floor = 3, .ceiling = 5 } } },
+    };
+    const task_c = task.Task.init(instrs_c);
+
     try simulator.register(alloc, task_a);
     try simulator.register(alloc, task_b);
+    try simulator.register(alloc, task_c);
 
-    simulator.use_q_learning = true;
+    // simulator.use_q_learning = true;
 
     var buf: [16]u8 = undefined;
     const stdin = std.fs.File.stdin().deprecatedReader();
@@ -51,7 +60,7 @@ pub fn main() !void {
         }
     }
 
-    try csv.to_csv("simple.csv", simulator.hist.items);
+    try csv.to_csv("baseline_3_cpu_heavy.csv", simulator.hist.items);
 }
 
 test {
