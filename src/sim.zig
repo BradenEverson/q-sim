@@ -16,10 +16,13 @@ pub const Simulator = struct {
 
     use_q_learning: bool = false,
 
+    hist: std.ArrayList(f32) = .{},
+
     pub fn deinit(self: *Simulator, alloc: std.mem.Allocator) void {
         self.tasks.deinit(alloc);
         self.waiting.deinit(alloc);
         self.ready.deinit(alloc);
+        self.hist.deinit(alloc);
     }
 
     pub fn register(self: *Simulator, alloc: std.mem.Allocator, task: Task) !void {
@@ -80,6 +83,19 @@ pub const Simulator = struct {
         }
     }
 
+    pub fn avgStarvation(self: *const Simulator) f32 {
+        var starvation: f32 = 0.0;
+        const time: f32 = @floatFromInt(self.time);
+
+        for (self.tasks.items) |task| {
+            const starve: f32 = @floatFromInt(task.starvation_time);
+            starvation += starve / time;
+        }
+
+        const n: f32 = @floatFromInt(self.tasks.items.len);
+        return starvation / n;
+    }
+
     pub fn summarize(self: *const Simulator) void {
         var starvation: usize = 0;
         const time: f32 = @floatFromInt(self.time);
@@ -115,7 +131,10 @@ pub const Simulator = struct {
         self.time += 1;
 
         self.getCurr().running_time += 1;
+
         self.updateStarvation();
+        try self.hist.append(alloc, self.avgStarvation());
+
         self.updateWaitingTime();
 
         // Update all IO waiting queues

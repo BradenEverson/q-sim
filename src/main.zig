@@ -2,6 +2,8 @@ const std = @import("std");
 const sim = @import("sim.zig");
 const task = @import("task.zig");
 
+const csv = @import("csv.zig");
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -48,6 +50,8 @@ pub fn main() !void {
             simulator.summarize();
         }
     }
+
+    try csv.to_csv("tan_reward.csv", simulator.hist.items);
 }
 
 test {

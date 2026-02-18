@@ -65,7 +65,7 @@ pub inline fn cpuUptimeReward(cpu: f32, wait: f32) f32 {
 
 /// How much we want to incorporate the total percentage of time
 /// spent NOT being starved
-const P_NO_WAIT: f32 = 75;
+const P_NO_WAIT: f32 = 175;
 
 /// How much we want to punish very high or very low deltas
 const P_LARGE_SMALL: f32 = 100;
