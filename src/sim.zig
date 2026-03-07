@@ -71,7 +71,7 @@ pub const Simulator = struct {
         } else {
             self.curr = self.ready.swapRemove(0);
             const delta = if (self.use_q_learning)
-                self.getCurr().getDelta()
+                self.getCurr().getDelta(@floatFromInt(self.tasks.items.len), self.avgStarvation())
             else
                 self.getCurr().getDeltaNoQ();
 

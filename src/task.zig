@@ -1,7 +1,7 @@
 //! Task definition
 
 const std = @import("std");
-const Agent = @import("q_agent.zig");
+const Agent = @import("q_agent.zig").QAgent;
 
 var prng: ?std.Random.DefaultPrng = null;
 
@@ -79,14 +79,15 @@ pub const Task = struct {
         return 10;
     }
 
-    pub fn getDelta(self: *Task) usize {
-        const tot = self.running_time + self.waiting_io_time;
+    pub fn getDelta(self: *Task, tasks: f32, avg_starve: f32) usize {
+        const tot = self.running_time + self.waiting_io_time + self.starvation_time;
 
         const tot_f: f32 = @floatFromInt(tot);
         const cpu_f: f32 = @floatFromInt(self.running_time);
         const wait_f: f32 = @floatFromInt(self.waiting_io_time);
+        const wait_no_f: f32 = @floatFromInt(self.starvation_time);
 
-        return self.agent.update(cpu_f / tot_f, wait_f / tot_f, getRand());
+        return self.agent.update(cpu_f / tot_f, wait_no_f / tot_f, wait_f / tot_f, avg_starve, tasks, getRand());
     }
 
     pub fn advance(self: *Task) ?Instruction {

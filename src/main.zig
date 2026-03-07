@@ -13,29 +13,20 @@ pub fn main() !void {
     defer simulator.deinit(alloc);
 
     const instrs_a = &[_]task.Instruction{
-        .{ .work = .{ .fixed = 500 } },
-        .{ .io = .{ .range = .{ .floor = 2, .ceiling = 10 } } },
-        .{ .work = .{ .fixed = 1500 } },
+        .{ .work = .{ .fixed = 30 } },
+        .{ .io = .{ .range = .{ .floor = 80, .ceiling = 100 } } },
     };
     const task_a = task.Task.init(instrs_a);
 
     const instrs_b = &[_]task.Instruction{
         .{ .work = .{ .range = .{ .floor = 25, .ceiling = 450 } } },
-        .{ .io = .{ .range = .{ .floor = 3, .ceiling = 5 } } },
     };
     const task_b = task.Task.init(instrs_b);
 
-    const instrs_c = &[_]task.Instruction{
-        .{ .work = .{ .range = .{ .floor = 25, .ceiling = 450 } } },
-        .{ .io = .{ .range = .{ .floor = 3, .ceiling = 5 } } },
-    };
-    const task_c = task.Task.init(instrs_c);
-
     try simulator.register(alloc, task_a);
     try simulator.register(alloc, task_b);
-    try simulator.register(alloc, task_c);
 
-    // simulator.use_q_learning = true;
+    simulator.use_q_learning = true;
 
     var buf: [16]u8 = undefined;
     const stdin = std.fs.File.stdin().deprecatedReader();
