@@ -26,32 +26,37 @@ pub fn main() !void {
     try simulator.register(alloc, task_a);
     try simulator.register(alloc, task_b);
 
-    simulator.use_q_learning = true;
+    // simulator.use_q_learning = true;
 
-    var buf: [16]u8 = undefined;
-    const stdin = std.fs.File.stdin().deprecatedReader();
+    // var buf: [16]u8 = undefined;
+    // const stdin = std.fs.File.stdin().deprecatedReader();
+    //
+    // while (true) {
+    //     std.debug.print("\nEnter ticks to simulate (or \"exit\"): ", .{});
+    //
+    //     if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+    //         const input = std.mem.trimRight(u8, line, "\r");
+    //         if (std.mem.eql(u8, input, "exit")) break;
+    //
+    //         const ticks = std.fmt.parseInt(u32, input, 10) catch {
+    //             std.debug.print("Invalid input. Please enter a number or \"exit\".\n", .{});
+    //             continue;
+    //         };
+    //
+    //         for (0..ticks) |_| {
+    //             try simulator.tick(alloc);
+    //         }
+    //
+    //         simulator.summarize();
+    //     }
+    // }
 
-    while (true) {
-        std.debug.print("\nEnter ticks to simulate (or \"exit\"): ", .{});
-
-        if (try stdin.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            const input = std.mem.trimRight(u8, line, "\r");
-            if (std.mem.eql(u8, input, "exit")) break;
-
-            const ticks = std.fmt.parseInt(u32, input, 10) catch {
-                std.debug.print("Invalid input. Please enter a number or \"exit\".\n", .{});
-                continue;
-            };
-
-            for (0..ticks) |_| {
-                try simulator.tick(alloc);
-            }
-
-            simulator.summarize();
-        }
+    while (simulator.switches < 1000) {
+        try simulator.tick(alloc);
     }
 
-    try csv.to_csv("baseline_3_cpu_heavy.csv", simulator.hist.items);
+    simulator.summarize();
+    try csv.to_csv("1cpu1io_baseline1.csv", simulator.hist.items);
 }
 
 test {

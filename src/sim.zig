@@ -10,6 +10,7 @@ pub const Simulator = struct {
     ready: std.ArrayList(usize) = .{},
 
     time: usize = 0,
+    switches: f32 = 0,
 
     curr: usize = 0,
     time_left: usize = 10,
@@ -65,13 +66,14 @@ pub const Simulator = struct {
     }
 
     fn contextSwitch(self: *Simulator) void {
+        self.switches += 1;
         if (self.ready.items.len == 0) {
             std.debug.print("All jobs waiting on IO\n", .{});
             @panic("TODO: ALL JOBS WAITING ON IO\n");
         } else {
             self.curr = self.ready.swapRemove(0);
             const delta = if (self.use_q_learning)
-                self.getCurr().getDelta(@floatFromInt(self.tasks.items.len), self.avgStarvation())
+                self.getCurr().getDelta(self.switches)
             else
                 self.getCurr().getDeltaNoQ();
 
